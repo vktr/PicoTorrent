@@ -120,6 +120,24 @@ target_link_libraries(
 )
 
 add_executable(
+    PicoTorrentCore
+    src/core/main
+    src/core/websocket_listener
+)
+
+target_include_directories(
+    PicoTorrentCore
+    PRIVATE
+    ${Boost_INCLUDE_DIRS}
+)
+
+target_link_libraries(
+    PicoTorrentCore
+    PRIVATE
+    ${Boost_LIBRARIES}
+)
+
+add_executable(
     PicoTorrent
     WIN32
 
