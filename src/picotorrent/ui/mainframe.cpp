@@ -38,7 +38,12 @@
 #include "torrentlistview.hpp"
 #include "translator.hpp"
 
+#ifdef _WIN32
 #include "win32/openfiledialog.hpp"
+#else
+#include <wx/filedlg.h>
+#endif
+
 
 namespace fs = std::filesystem;
 using pt::UI::MainFrame;
@@ -667,7 +672,8 @@ void MainFrame::OnFileAddMagnetLink(wxCommandEvent&)
 }
 
 void MainFrame::OnFileAddTorrent(wxCommandEvent&)
-{
+{   
+    #ifdef _WIN32
     Win32::OpenFileDialog ofd;
 
     ofd.SetFileTypes({
@@ -690,6 +696,21 @@ void MainFrame::OnFileAddTorrent(wxCommandEvent&)
     std::vector<lt::add_torrent_params> params;
     this->ParseTorrentFiles(params, files);
     this->AddTorrents(params);
+    #else
+    wxFileDialog* OpenDialog = new wxFileDialog(this, _(i18n("add_torrent_s")), wxEmptyString, wxEmptyString, _("Torrent files|*.torrent|All files (*.*)|*.*"), wxFD_OPEN|wxFD_MULTIPLE, wxDefaultPosition);
+    if (OpenDialog->ShowModal() == wxID_OK){
+		wxArrayString wxfiles;
+		OpenDialog -> GetPaths(wxfiles);
+		std::vector<std::string> files;
+        for (auto const& f : wxfiles){
+            files.push_back(f.ToStdString());
+        }
+		std::vector<lt::add_torrent_params> params;
+        this->ParseTorrentFiles(params, files);
+        this->AddTorrents(params);
+	}
+	OpenDialog->Destroy();
+    #endif
 }
 
 void MainFrame::OnFileCreateTorrent(wxCommandEvent&)
